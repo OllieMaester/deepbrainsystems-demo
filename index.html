@@ -327,7 +327,7 @@
 </div>
 
 <!-- Retell SDK -->
-<script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
+<script src="https://unpkg.com/retell-client-js-sdk@latest/dist/index.umd.js"></script>
 
 <script>
   // ─── CONFIG — read from URL params ─────────────────────────────────
@@ -383,7 +383,7 @@
 
     try {
       // 1. Get access token from your backend
-      const res = await fetch(`${API_URL}/get-token`, {
+      const res = await fetch(`${API_URL}/api/get-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent_id: AGENT_ID })
@@ -418,7 +418,7 @@
       await retellClient.startCall({ accessToken: access_token });
 
     } catch (err) {
-      showError('Could not connect. Please check your microphone permissions and try again.');
+      showError('Error: ' + err.message);
       resetUI();
     }
   }
