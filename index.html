@@ -6,378 +6,149 @@
 <title>AI Demo — DeepBrainSystems</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --border: #1e1e2e;
-    --accent: #7c6af7;
-    --accent2: #a78bfa;
-    --text: #e8e6f0;
-    --muted: #6b6880;
-    --success: #34d399;
-    --danger: #f87171;
-  }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(124,106,247,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(167,139,250,0.08) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .card {
-    position: relative;
-    z-index: 1;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 48px 40px;
-    max-width: 460px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
-  }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(124,106,247,0.12);
-    border: 1px solid rgba(124,106,247,0.25);
-    border-radius: 100px;
-    padding: 5px 14px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--accent2);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-  }
-  .badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 8px var(--success);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.8); }
-  }
-  .agent-avatar {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    box-shadow: 0 0 40px rgba(124,106,247,0.3);
-  }
-  .agent-avatar.active {
-    animation: glow 1.5s ease-in-out infinite alternate;
-  }
-  @keyframes glow {
-    from { box-shadow: 0 0 30px rgba(124,106,247,0.4); }
-    to   { box-shadow: 0 0 70px rgba(124,106,247,0.8); }
-  }
-  h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 26px;
-    font-weight: 400;
-    line-height: 1.2;
-    margin-bottom: 8px;
-  }
-  .company-name {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    color: var(--accent2);
-  }
-  .subtitle {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-bottom: 36px;
-    max-width: 320px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .visualizer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 40px;
-    margin-bottom: 28px;
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
-  .visualizer.active { opacity: 1; }
-  .bar {
-    width: 4px;
-    border-radius: 2px;
-    background: var(--accent);
-  }
-  .visualizer.active .bar { animation: wave 1.2s ease-in-out infinite; }
-  .bar:nth-child(1) { animation-delay: 0s;    height: 8px; }
-  .bar:nth-child(2) { animation-delay: 0.1s;  height: 16px; }
-  .bar:nth-child(3) { animation-delay: 0.2s;  height: 24px; }
-  .bar:nth-child(4) { animation-delay: 0.3s;  height: 32px; }
-  .bar:nth-child(5) { animation-delay: 0.4s;  height: 40px; }
-  .bar:nth-child(6) { animation-delay: 0.3s;  height: 32px; }
-  .bar:nth-child(7) { animation-delay: 0.2s;  height: 24px; }
-  .bar:nth-child(8) { animation-delay: 0.1s;  height: 16px; }
-  .bar:nth-child(9) { animation-delay: 0s;    height: 8px; }
-  @keyframes wave {
-    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
-    50%       { transform: scaleY(1);   opacity: 1; }
-  }
-  .status {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 28px;
-    min-height: 20px;
-  }
-  .status.connected { color: var(--success); }
-  .status.error { color: var(--danger); }
-  .btn-call {
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff;
-    box-shadow: 0 8px 24px rgba(124,106,247,0.35);
-  }
-  .btn-call:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,106,247,0.5); }
-  .btn-call:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  .btn-call.active {
-    background: linear-gradient(135deg, #dc2626, #f87171);
-    box-shadow: 0 8px 24px rgba(248,113,113,0.35);
-  }
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-  .btn-call.loading .spinner { display: block; }
-  .btn-call.loading .btn-icon { display: none; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error-box {
-    background: rgba(248,113,113,0.08);
-    border: 1px solid rgba(248,113,113,0.2);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--danger);
-    margin-bottom: 20px;
-    display: none;
-    text-align: left;
-    line-height: 1.5;
-  }
-  .error-box.show { display: block; }
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
-  .powered-by { font-size: 12px; color: var(--muted); margin-top: 24px; }
-  .powered-by span { color: var(--accent2); font-weight: 500; }
-  @media (max-width: 480px) {
-    .card { padding: 36px 24px; }
-    h1 { font-size: 22px; }
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0a0a0f;--surface:#111118;--border:#1e1e2e;--accent:#7c6af7;--accent2:#a78bfa;--text:#e8e6f0;--muted:#6b6880;--success:#34d399;--danger:#f87171}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(124,106,247,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(167,139,250,.08) 0%,transparent 60%);pointer-events:none;z-index:0}
+  .card{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:48px 40px;max-width:460px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+  .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.25);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--accent2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:28px}
+  .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+  .avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 40px rgba(124,106,247,.3);transition:box-shadow .3s}
+  .avatar.active{animation:glow 1.5s ease-in-out infinite alternate}
+  @keyframes glow{from{box-shadow:0 0 30px rgba(124,106,247,.4)}to{box-shadow:0 0 70px rgba(124,106,247,.8)}}
+  h1{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;line-height:1.2;margin-bottom:8px}
+  .italic{font-style:italic;color:var(--accent2)}
+  .sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:36px;max-width:320px;margin-left:auto;margin-right:auto}
+  .viz{display:flex;align-items:center;justify-content:center;gap:4px;height:40px;margin-bottom:28px;opacity:0;transition:opacity .4s}
+  .viz.active{opacity:1}
+  .bar{width:4px;border-radius:2px;background:var(--accent)}
+  .viz.active .bar{animation:wave 1.2s ease-in-out infinite}
+  .bar:nth-child(1){animation-delay:0s;height:8px}.bar:nth-child(2){animation-delay:.1s;height:16px}.bar:nth-child(3){animation-delay:.2s;height:24px}.bar:nth-child(4){animation-delay:.3s;height:32px}.bar:nth-child(5){animation-delay:.4s;height:40px}.bar:nth-child(6){animation-delay:.3s;height:32px}.bar:nth-child(7){animation-delay:.2s;height:24px}.bar:nth-child(8){animation-delay:.1s;height:16px}.bar:nth-child(9){animation-delay:0s;height:8px}
+  @keyframes wave{0%,100%{transform:scaleY(.4);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+  .status{font-size:13px;color:var(--muted);margin-bottom:28px;min-height:20px}
+  .status.ok{color:var(--success)}.status.err{color:var(--danger)}
+  .btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 24px rgba(124,106,247,.35)}
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 32px rgba(124,106,247,.5)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .btn.end{background:linear-gradient(135deg,#dc2626,#f87171);box-shadow:0 8px 24px rgba(248,113,113,.35)}
+  .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+  .btn.loading .spinner{display:block}.btn.loading .icon{display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .errbox{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--danger);margin-bottom:20px;display:none;text-align:left;line-height:1.5}
+  .errbox.show{display:block}
+  .div{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:12px}
+  .div::before,.div::after{content:'';flex:1;height:1px;background:var(--border)}
+  .pow{font-size:12px;color:var(--muted);margin-top:24px}
+  .pow span{color:var(--accent2);font-weight:500}
+  @media(max-width:480px){.card{padding:36px 24px}h1{font-size:22px}}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="badge">Live AI Demo</div>
-  <div class="agent-avatar" id="avatar">🤖</div>
-  <h1>Talk to <span class="company-name" id="agentNameDisplay">the AI Agent</span></h1>
-  <p class="subtitle" id="subtitleText">Click below to start a live voice conversation with the AI receptionist built specifically for this practice.</p>
-  <div class="visualizer" id="visualizer">
+  <div class="avatar" id="av">🤖</div>
+  <h1>Talk to <span class="italic" id="agentName">the AI Agent</span></h1>
+  <p class="sub" id="sub">Click below to start a live voice conversation with the AI receptionist built specifically for this practice.</p>
+  <div class="viz" id="viz">
     <div class="bar"></div><div class="bar"></div><div class="bar"></div>
     <div class="bar"></div><div class="bar"></div><div class="bar"></div>
     <div class="bar"></div><div class="bar"></div><div class="bar"></div>
   </div>
-  <p class="status" id="statusText">Ready to connect</p>
-  <div class="error-box" id="errorBox"></div>
-  <button class="btn-call" id="callBtn" onclick="toggleCall()">
+  <p class="status" id="st">Ready to connect</p>
+  <div class="errbox" id="err"></div>
+  <button class="btn" id="btn" onclick="toggle()">
     <div class="spinner"></div>
-    <span class="btn-icon">🎙️</span>
-    <span id="btnText">Start Voice Demo</span>
+    <span class="icon">🎙️</span>
+    <span id="btxt">Start Voice Demo</span>
   </button>
-  <div class="divider">powered by</div>
-  <div class="powered-by"><span>DeepBrainSystems</span> · AI Voice Agents for Healthcare</div>
+  <div class="div">powered by</div>
+  <div class="pow"><span>DeepBrainSystems</span> · AI Voice Agents for Healthcare</div>
 </div>
 
-<script>
-  const params     = new URLSearchParams(window.location.search);
-  const AGENT_ID   = params.get('agent')   || '';
-  const AGENT_NAME = params.get('name')    || 'the AI Agent';
-  const COMPANY    = params.get('company') || 'this practice';
-  const API_URL    = 'https://deepbrainsystems-demo.vercel.app';
+<script type="module">
+  // Read URL params
+  const p       = new URLSearchParams(location.search);
+  const AGENT   = p.get('agent')   || '';
+  const NAME    = p.get('name')    || 'the AI Agent';
+  const COMPANY = p.get('company') || 'this practice';
+  const API     = 'https://deepbrainsystems-demo.vercel.app';
 
-  document.getElementById('agentNameDisplay').textContent = AGENT_NAME;
-  document.getElementById('subtitleText').textContent =
-    `Click below to start a live voice conversation with ${AGENT_NAME}, the AI receptionist built specifically for ${COMPANY}.`;
+  document.getElementById('agentName').textContent = NAME;
+  document.getElementById('sub').textContent =
+    `Click below to start a live voice conversation with ${NAME}, the AI receptionist built specifically for ${COMPANY}.`;
 
-  const btn        = document.getElementById('callBtn');
-  const btnText    = document.getElementById('btnText');
-  const statusEl   = document.getElementById('statusText');
-  const visualizer = document.getElementById('visualizer');
-  const avatar     = document.getElementById('avatar');
-  const errorBox   = document.getElementById('errorBox');
+  const btn  = document.getElementById('btn');
+  const btxt = document.getElementById('btxt');
+  const st   = document.getElementById('st');
+  const viz  = document.getElementById('viz');
+  const av   = document.getElementById('av');
+  const err  = document.getElementById('err');
 
-  let callActive = false;
-  let retellClient = null;
+  let client = null;
+  let active = false;
 
-  function setStatus(msg, type = '') {
-    statusEl.textContent = msg;
-    statusEl.className = 'status ' + type;
-  }
-  function showError(msg) { errorBox.textContent = msg; errorBox.classList.add('show'); }
-  function hideError()    { errorBox.classList.remove('show'); }
-
-  function resetUI() {
-    callActive = false;
-    btn.classList.remove('loading', 'active');
-    btn.disabled = false;
-    btnText.textContent = 'Start Voice Demo';
+  const setStatus = (m, c='') => { st.textContent=m; st.className='status '+c; };
+  const showErr   = (m) => { err.textContent=m; err.classList.add('show'); };
+  const hideErr   = ()  => err.classList.remove('show');
+  const reset = () => {
+    active=false; client=null;
+    btn.className='btn'; btn.disabled=false;
+    btxt.textContent='Start Voice Demo';
     setStatus('Ready to connect');
-    visualizer.classList.remove('active');
-    avatar.classList.remove('active');
-    retellClient = null;
-  }
+    viz.classList.remove('active');
+    av.classList.remove('active');
+  };
 
-  async function toggleCall() {
-    if (callActive) { endCall(); } else { await startCall(); }
-  }
+  window.toggle = async () => {
+    if (active) { client?.stopCall(); reset(); return; }
 
-  async function startCall() {
-    hideError();
-    btn.classList.add('loading');
-    btn.disabled = true;
-    setStatus('Getting access token...');
+    hideErr();
+    btn.className='btn loading'; btn.disabled=true;
+    setStatus('Connecting...');
 
-    let access_token;
+    // 1. Get token
+    let token;
     try {
-      const res = await fetch(`${API_URL}/api/get-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: AGENT_ID })
+      const r = await fetch(`${API}/api/call`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ agent_id: AGENT })
       });
-      const data = await res.json();
-      if (!res.ok || !data.access_token) throw new Error(data.error || 'No token returned');
-      access_token = data.access_token;
-    } catch(err) {
-      showError('Token error: ' + err.message);
-      resetUI();
-      return;
-    }
+      const d = await r.json();
+      if (!d.access_token) throw new Error(d.error || 'No token');
+      token = d.access_token;
+    } catch(e) { showErr('Token error: '+e.message); reset(); return; }
 
-    setStatus('Requesting microphone...');
-
-    // Request mic permission explicitly
+    // 2. Mic permission
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch(err) {
-      showError('Microphone access denied. Please allow microphone and try again.');
-      resetUI();
-      return;
-    }
+    } catch(e) { showErr('Microphone denied — please allow mic access and try again.'); reset(); return; }
 
-    setStatus('Connecting to agent...');
-
-    // Dynamically load Retell SDK
+    // 3. Import Retell SDK as ES module (the only build that actually works)
+    let RetellWebClient;
     try {
-      await loadScript('https://cdn.jsdelivr.net/npm/retell-client-js-sdk@2/dist/index.iife.js');
-    } catch(err) {
-      showError('Failed to load voice SDK. Please refresh and try again.');
-      resetUI();
-      return;
-    }
+      const mod = await import('https://esm.sh/retell-client-js-sdk@2.0.7');
+      RetellWebClient = mod.RetellWebClient || mod.default?.RetellWebClient || mod.default;
+      if (!RetellWebClient) throw new Error('RetellWebClient not found in module exports: ' + Object.keys(mod).join(', '));
+    } catch(e) { showErr('SDK error: '+e.message); reset(); return; }
 
+    // 4. Start call
     try {
-      // Try both possible class names
-      const ClientClass = window.RetellWebClient || window.Retell?.WebClient || window.retellSdk?.RetellWebClient;
-      if (!ClientClass) throw new Error('SDK loaded but RetellWebClient not found. Keys: ' + Object.keys(window).filter(k=>k.toLowerCase().includes('retell')).join(', '));
-
-      retellClient = new ClientClass();
-
-      retellClient.on('call_started', () => {
-        callActive = true;
-        btn.classList.remove('loading');
-        btn.classList.add('active');
-        btn.disabled = false;
-        btnText.textContent = 'End Call';
-        setStatus('Connected — speak now', 'connected');
-        visualizer.classList.add('active');
-        avatar.classList.add('active');
+      client = new RetellWebClient();
+      client.on('call_started', () => {
+        active=true;
+        btn.className='btn end'; btn.disabled=false;
+        btxt.textContent='End Call';
+        setStatus('Connected — speak now','ok');
+        viz.classList.add('active');
+        av.classList.add('active');
       });
-
-      retellClient.on('call_ended', () => resetUI());
-      retellClient.on('error', (err) => {
-        showError('Call error: ' + (err?.message || JSON.stringify(err)));
-        resetUI();
-      });
-
-      await retellClient.startCall({ accessToken: access_token });
-
-    } catch(err) {
-      showError('Error: ' + err.message);
-      resetUI();
-    }
-  }
-
-  function endCall() {
-    if (retellClient) { try { retellClient.stopCall(); } catch(e) {} }
-    resetUI();
-  }
-
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      // Check if already loaded
-      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-      const s = document.createElement('script');
-      s.src = src;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('Failed to load: ' + src));
-      document.head.appendChild(s);
-    });
-  }
+      client.on('call_ended', reset);
+      client.on('error', (e) => { showErr('Call error: '+(e?.message||JSON.stringify(e))); reset(); });
+      await client.startCall({ accessToken: token });
+    } catch(e) { showErr('Start error: '+e.message); reset(); }
+  };
 </script>
 </body>
 </html>
