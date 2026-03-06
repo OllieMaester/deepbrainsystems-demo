@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Demo — DeepBrainSystems</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --text: #e8e6f0;
+    --muted: #6b6880;
+    --success: #34d399;
+    --danger: #f87171;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(124,106,247,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(167,139,250,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,106,247,0.12);
+    border: 1px solid rgba(124,106,247,0.25);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+  }
+
+  .agent-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 0 40px rgba(124,106,247,0.3);
+    transition: box-shadow 0.3s;
+  }
+
+  .agent-avatar.active {
+    box-shadow: 0 0 60px rgba(124,106,247,0.6);
+    animation: glow 1.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { box-shadow: 0 0 30px rgba(124,106,247,0.4); }
+    to   { box-shadow: 0 0 70px rgba(124,106,247,0.8); }
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .company-name {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    color: var(--accent2);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Sound wave visualizer */
+  .visualizer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 40px;
+    margin-bottom: 28px;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .visualizer.active { opacity: 1; }
+
+  .bar {
+    width: 4px;
+    border-radius: 2px;
+    background: var(--accent);
+    animation: none;
+  }
+
+  .visualizer.active .bar {
+    animation: wave 1.2s ease-in-out infinite;
+  }
+
+  .bar:nth-child(1)  { animation-delay: 0s;    height: 8px; }
+  .bar:nth-child(2)  { animation-delay: 0.1s;  height: 16px; }
+  .bar:nth-child(3)  { animation-delay: 0.2s;  height: 24px; }
+  .bar:nth-child(4)  { animation-delay: 0.3s;  height: 32px; }
+  .bar:nth-child(5)  { animation-delay: 0.4s;  height: 40px; }
+  .bar:nth-child(6)  { animation-delay: 0.3s;  height: 32px; }
+  .bar:nth-child(7)  { animation-delay: 0.2s;  height: 24px; }
+  .bar:nth-child(8)  { animation-delay: 0.1s;  height: 16px; }
+  .bar:nth-child(9)  { animation-delay: 0s;    height: 8px; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+    50%       { transform: scaleY(1);   opacity: 1; }
+  }
+
+  /* Status text */
+  .status {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    min-height: 20px;
+    transition: color 0.3s;
+  }
+  .status.connected { color: var(--success); }
+  .status.error     { color: var(--danger); }
+
+  /* Main CTA button */
+  .btn-call {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(124,106,247,0.35);
+  }
+
+  .btn-call:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(124,106,247,0.5);
+  }
+
+  .btn-call:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-call:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-call.active {
+    background: linear-gradient(135deg, #dc2626, #f87171);
+    box-shadow: 0 8px 24px rgba(248,113,113,0.35);
+  }
+
+  .btn-call.active:hover {
+    box-shadow: 0 12px 32px rgba(248,113,113,0.5);
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .btn-call.loading .spinner { display: block; }
+  .btn-call.loading .btn-icon { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .powered-by {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 24px;
+  }
+
+  .powered-by span {
+    color: var(--accent2);
+    font-weight: 500;
+  }
+
+  /* Error message */
+  .error-box {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    margin-bottom: 20px;
+    display: none;
+    text-align: left;
+    line-height: 1.5;
+  }
+
+  .error-box.show { display: block; }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .card { padding: 36px 24px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="badge">Live AI Demo</div>
+
+  <div class="agent-avatar" id="avatar">🤖</div>
+
+  <h1>Talk to <span class="company-name" id="agentNameDisplay">the AI Agent</span></h1>
+  <p class="subtitle" id="subtitleText">Click below to start a live voice conversation with the AI receptionist built specifically for this practice.</p>
+
+  <div class="visualizer" id="visualizer">
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+  </div>
+
+  <p class="status" id="statusText">Ready to connect</p>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <button class="btn-call" id="callBtn" onclick="toggleCall()">
+    <div class="spinner"></div>
+    <span class="btn-icon">🎙️</span>
+    <span id="btnText">Start Voice Demo</span>
+  </button>
+
+  <div class="divider">powered by</div>
+
+  <div class="powered-by">
+    <span>DeepBrainSystems</span> · AI Voice Agents for Healthcare
+  </div>
+</div>
+
+<!-- Retell SDK -->
+<script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
+
+<script>
+  // ─── CONFIG — filled per company by n8n ─────────────────────────────
+  const AGENT_ID   = "{{AGENT_ID}}";
+  const AGENT_NAME = "{{AGENT_NAME}}";
+  const COMPANY    = "{{COMPANY_NAME}}";
+  const API_URL    = "{{API_URL}}"; // Your Vercel backend URL
+  // ────────────────────────────────────────────────────────────────────
+
+  // Update display
+  document.getElementById('agentNameDisplay').textContent = AGENT_NAME;
+  document.getElementById('subtitleText').textContent =
+    `Click below to start a live voice conversation with ${AGENT_NAME}, the AI receptionist built specifically for ${COMPANY}.`;
+
+  let retellClient = null;
+  let callActive = false;
+
+  const btn       = document.getElementById('callBtn');
+  const btnText   = document.getElementById('btnText');
+  const statusEl  = document.getElementById('statusText');
+  const visualizer = document.getElementById('visualizer');
+  const avatar    = document.getElementById('avatar');
+  const errorBox  = document.getElementById('errorBox');
+
+  function setStatus(msg, type = '') {
+    statusEl.textContent = msg;
+    statusEl.className = 'status ' + type;
+  }
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.add('show');
+  }
+
+  function hideError() {
+    errorBox.classList.remove('show');
+  }
+
+  async function toggleCall() {
+    if (callActive) {
+      endCall();
+    } else {
+      await startCall();
+    }
+  }
+
+  async function startCall() {
+    hideError();
+    btn.classList.add('loading');
+    btn.disabled = true;
+    setStatus('Connecting...');
+
+    try {
+      // 1. Get access token from your backend
+      const res = await fetch(`${API_URL}/get-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_id: AGENT_ID })
+      });
+
+      if (!res.ok) throw new Error('Failed to get access token');
+      const { access_token } = await res.json();
+
+      // 2. Start Retell web call
+      retellClient = new RetellWebClient();
+
+      retellClient.on('call_started', () => {
+        callActive = true;
+        btn.classList.remove('loading');
+        btn.classList.add('active');
+        btn.disabled = false;
+        btnText.textContent = 'End Call';
+        setStatus('Connected — speak now', 'connected');
+        visualizer.classList.add('active');
+        avatar.classList.add('active');
+      });
+
+      retellClient.on('call_ended', () => {
+        resetUI();
+      });
+
+      retellClient.on('error', (err) => {
+        showError('Connection error: ' + (err.message || 'Please try again.'));
+        resetUI();
+      });
+
+      await retellClient.startCall({ accessToken: access_token });
+
+    } catch (err) {
+      showError('Could not connect. Please check your microphone permissions and try again.');
+      resetUI();
+    }
+  }
+
+  function endCall() {
+    if (retellClient) {
+      retellClient.stopCall();
+      retellClient = null;
+    }
+    resetUI();
+  }
+
+  function resetUI() {
+    callActive = false;
+    btn.classList.remove('loading', 'active');
+    btn.disabled = false;
+    btnText.textContent = 'Start Voice Demo';
+    setStatus('Ready to connect');
+    visualizer.classList.remove('active');
+    avatar.classList.remove('active');
+  }
+</script>
+</body>
+</html>
