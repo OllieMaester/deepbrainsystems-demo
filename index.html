@@ -330,11 +330,12 @@
 <script src="https://unpkg.com/retell-client-js-sdk/dist/index.umd.js"></script>
 
 <script>
-  // ─── CONFIG — filled per company by n8n ─────────────────────────────
-  const AGENT_ID   = "{{AGENT_ID}}";
-  const AGENT_NAME = "{{AGENT_NAME}}";
-  const COMPANY    = "{{COMPANY_NAME}}";
-  const API_URL    = "{{API_URL}}"; // Your Vercel backend URL
+  // ─── CONFIG — read from URL params ─────────────────────────────────
+  const params     = new URLSearchParams(window.location.search);
+  const AGENT_ID   = params.get('agent')   || '';
+  const AGENT_NAME = params.get('name')    || 'the AI Agent';
+  const COMPANY    = params.get('company') || 'this practice';
+  const API_URL    = 'https://deepbrainsystems-demo.vercel.app';
   // ────────────────────────────────────────────────────────────────────
 
   // Update display
